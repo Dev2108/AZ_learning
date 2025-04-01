@@ -15,7 +15,9 @@ stages:
   - job: UploadSecrets
     displayName: 'Add Secrets'
     steps:
-
+    - task: Checkout@1
+      inputs:
+        fetchDepth: 1
     - task: AzureCLI@2
       displayName: 'Login to Azure'
       inputs:
