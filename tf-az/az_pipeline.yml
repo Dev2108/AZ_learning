@@ -15,9 +15,18 @@ stages:
   - job: UploadSecrets
     displayName: 'Add Secrets'
     steps:
+    
+    # Checkout the repository first
     - task: Checkout@1
       inputs:
         fetchDepth: 1
+
+    # Debugging step to check if the variable is set correctly
+    - script: echo $(DB_PASSWORD)
+      displayName: 'Debug DB_PASSWORD'
+    - script: echo $(API_TOKEN)
+      displayName: 'Debug API_TOKEN'
+
     - task: AzureCLI@2
       displayName: 'Login to Azure'
       inputs:
@@ -25,7 +34,7 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az account show
+          az account show  # Ensures you're logged into the correct Azure account
 
     - task: AzureCLI@2
       displayName: 'Upload Secrets from Secure Pipeline Variables'
@@ -36,13 +45,3 @@ stages:
         inlineScript: |
           az keyvault secret set --vault-name $(keyVaultName) --name "DB_PASSWORD" --value "$(DB_PASSWORD)"
           az keyvault secret set --vault-name $(keyVaultName) --name "API_TOKEN" --value "$(API_TOKEN)"
-
-    # - task: AzureCLI@2
-    #   displayName: 'Upload Certificates'
-    #   inputs:
-    #     azureSubscription: $(azureSubscription)
-    #     scriptType: 'bash'
-    #     scriptLocation: 'inlineScript'
-    #     inlineScript: |
-    #       echo "$(CERTIFICATE_BASE64)" | base64 --decode > certificate.pfx
-    #       az keyvault certificate import --vault-name $(keyVaultName) --name "myCert" --file "certificate.pfx" --password "$(CERT_PASSWORD)"
