@@ -6,7 +6,7 @@ pool:
 
 variables:
   azureSubscription: 'MyServiceConnection'  # Service connection name
-  keyVaultName: 'my-keyvault'               # Your Azure Key Vault name
+  keyVaultName: 'terraform-kv-oro8ln'     # Your Azure Key Vault name
 
 stages:
 - stage: Upload_Secrets
