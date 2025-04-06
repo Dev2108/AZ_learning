@@ -16,14 +16,11 @@ stages:
     displayName: 'Add Secrets'
     steps:
     
-    - checkout: self  # Correct way to checkout repo
-
-    - script: echo "DB_PASSWORD=$(DB_PASSWORD)"
-      displayName: 'Debug DB_PASSWORD'
-
-    - script: echo "API_TOKEN=$(API_TOKEN)"
-      displayName: 'Debug API_TOKEN'
-
+    - checkout: self
+    - script: |
+        echo "DB_PASSWORD is: $(DB_PASSWORD)"
+        echo "API_TOKEN is: $(API_TOKEN)"
+      displayName: 'Debug pipeline secrets'
     - task: AzureCLI@2
       displayName: 'Login to Azure'
       inputs:
@@ -32,7 +29,6 @@ stages:
         scriptLocation: 'inlineScript'
         inlineScript: |
           az account show
-
     - task: AzureCLI@2
       displayName: 'Upload Secrets to Key Vault'
       inputs:
@@ -40,5 +36,5 @@ stages:
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az keyvault secret set --vault-name $(keyVaultName) --name "DB_PASSWORD" --value "$(DB_PASSWORD)"
-          az keyvault secret set --vault-name $(keyVaultName) --name "API_TOKEN" --value "$(API_TOKEN)"
+          az keyvault secret set --vault-name $(keyVaultName) --name DB_PASSWORD --value "$DB_PASSWORD"
+          az keyvault secret set --vault-name $(keyVaultName) --name API_TOKEN --value "$API_TOKEN"
