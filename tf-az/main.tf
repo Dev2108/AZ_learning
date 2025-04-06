@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.99.0" # or latest available
+    }
+  }
+}
+
 provider "azurerm" {
   features {}
   subscription_id = var.subscription_id
@@ -70,3 +79,13 @@ module "rbac_kv" {
   ]
 }
 
+module "webapp" {
+  source              = "./modules/web_app"
+  resource_group_name = "flask-rg"
+  location            = "Central US"
+  web_app_name        = "flask-webapp-demo1eeg4yuhghyu"
+  app_service_plan    = "flask-service-plan"
+
+  sku_name          = "F1"
+  python_version      = "3.10"
+}
