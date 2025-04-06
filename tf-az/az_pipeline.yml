@@ -2,27 +2,14 @@ trigger:
 - main
 
 pool:
-  name: 'Default'
-
-variables:
-  azureSubscription: 'TerraformSP'
-  keyVaultName: 'terraform-kv-oro8ln'
+  vmImage: 'ubuntu-latest'
 
 stages:
-- stage: UploadSecrets
+- stage: TestStage
+  displayName: 'Simple Test Stage'
   jobs:
-  - job: Upload
-    displayName: 'Upload Secrets to Azure Key Vault'
+  - job: EchoJob
+    displayName: 'Run Echo Command'
     steps:
-    - checkout: self
-
-    - task: AzureCLI@2
-      displayName: 'Upload secrets'
-      inputs:
-        azureSubscription: $(azureSubscription)
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          echo "Setting secrets in Key Vault: $(keyVaultName)"
-          az keyvault secret set --vault-name $(keyVaultName) --name DB_PASSWORD --value "$(DB_PASSWORD)"
-          az keyvault secret set --vault-name $(keyVaultName) --name API_TOKEN --value "$(API_TOKEN)"
+    - script: echo "Hello from Azure Pipeline!"
+      displayName: 'Echo Hello'
