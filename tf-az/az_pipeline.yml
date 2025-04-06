@@ -9,32 +9,18 @@ variables:
   keyVaultName: 'terraform-kv-oro8ln'
 
 stages:
-- stage: Upload_Secrets
-  displayName: 'Upload Secrets to Azure Key Vault'
+- stage: UploadSecrets
   jobs:
-  - job: UploadSecrets
-    displayName: 'Add Secrets'
+  - job: Upload
     steps:
-    
     - checkout: self
-    - script: |
-        echo "DB_PASSWORD is: $(DB_PASSWORD)"
-        echo "API_TOKEN is: $(API_TOKEN)"
-      displayName: 'Debug pipeline secrets'
+
     - task: AzureCLI@2
-      displayName: 'Login to Azure'
       inputs:
         azureSubscription: $(azureSubscription)
         scriptType: 'bash'
         scriptLocation: 'inlineScript'
         inlineScript: |
-          az account show
-    - task: AzureCLI@2
-      displayName: 'Upload Secrets to Key Vault'
-      inputs:
-        azureSubscription: $(azureSubscription)
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az keyvault secret set --vault-name $(keyVaultName) --name DB_PASSWORD --value "$DB_PASSWORD"
-          az keyvault secret set --vault-name $(keyVaultName) --name API_TOKEN --value "$API_TOKEN"
+          echo "Uploading secrets to Key Vault: $(keyVaultName)"
+          az keyvault secret set --vault-name $(keyVaultName) --name DB_PASSWORD --value "$(DB_PASSWORD)"
+          az keyvault secret set --vault-name $(keyVaultName) --name API_TOKEN --value "$(API_TOKEN)"
