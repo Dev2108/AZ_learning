@@ -1,0 +1,36 @@
+trigger:
+- main
+
+pool:
+  name: 'Default'
+
+variables:
+  webAppName: "flask-webapp-demo1eeg4yuhghyu"  # Replace with your Azure Web App name
+  resourceGroup: "flask-rg"  # Replace with your RG name
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.10'
+
+- script: |
+    cd flask_app
+    mv startup.txt startup.sh
+    chmod +x startup.sh
+  displayName: 'Prepare Startup Script'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: 'flask_app'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/flaskapp.zip'
+    replaceExistingArchive: true
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: $(azureSubscription)
+    appType: 'webAppLinux'
+    appName: '$(webAppName)'
+    package: '$(Build.ArtifactStagingDirectory)/flaskapp.zip'
+
