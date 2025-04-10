@@ -2,17 +2,15 @@ trigger:
 - main
 
 pool:
-  name: 'Default'
+  name: 'Default'  # Your self-hosted agent pool
 
 variables:
-  webAppName: "flask-webapp-demo1eeg4yuhghyu"  # Replace with your Azure Web App name
-  resourceGroup: "flask-rg"  # Replace with your RG name
+  webAppName: "flask-webapp-demo1eeg4yuhghyu"
+  resourceGroup: "flask-rg"
 
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.10'
-
+- script: python3 --version
+  displayName: 'Check Python Version'
 - script: |
     cd flask_app
     mv startup.txt startup.sh
@@ -33,4 +31,3 @@ steps:
     appType: 'webAppLinux'
     appName: '$(webAppName)'
     package: '$(Build.ArtifactStagingDirectory)/flaskapp.zip'
-
