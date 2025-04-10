@@ -14,3 +14,8 @@ output "web_app_url" {
   value = module.webapp.web_app_url
 }
 
+output "all_user_credentials" {
+  value     = module.aad_users.user_credentials
+  sensitive = true
+}
+

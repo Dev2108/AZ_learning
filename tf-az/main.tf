@@ -52,6 +52,11 @@ module "app_registration" {
   key_vault_id    = azurerm_key_vault.terraform_kv.id
 }
 
+module "aad_users" {
+  source           = "./modules/aad_user"
+  users_by_group   = var.users_by_group
+}
+
 module "rbac" {
   source = "./modules/rbac"
   scope  = "/subscriptions/${var.subscription_id}"
@@ -64,6 +69,22 @@ module "rbac" {
     {
       role         = "User Access Administrator"
       principal_id = module.app_registration.service_principal_object_id
+    }
+  ]
+ 
+  # Role assignments for groups
+  group_role_assignments = [
+    {
+      role         = "Contributor"
+      principal_id = module.aad_users.group_ids["developer"]
+    },
+    {
+      role         = "Reader"
+      principal_id = module.aad_users.group_ids["developer"]
+    },
+    {
+      role         = "Reader"
+      principal_id = module.aad_users.group_ids["qa"]
     }
   ]
 }
@@ -89,3 +110,4 @@ module "webapp" {
   sku_name          = "F1"
   python_version      = "3.10"
 }
+

@@ -21,3 +21,12 @@ variable "user_role_assignments" {
   default = []
 }
 
+variable "group_role_assignments" {
+  description = "List of RBAC role assignments for groups"
+  type = list(object({
+    role         = string
+    principal_id = string
+  }))
+  default = []
+}
+

@@ -18,12 +18,13 @@ resource "azurerm_linux_web_app" "this" {
   resource_group_name = azurerm_resource_group.this.name
   service_plan_id = azurerm_service_plan.this.id
   depends_on      = [azurerm_service_plan.this] 
-
+  https_only      = true
   site_config {
     always_on                               = false
     application_stack {
       python_version = var.python_version
     }
+    app_command_line = "/home/site/wwwroot/startup.sh"
   }
 
   app_settings = {

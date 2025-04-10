@@ -14,3 +14,10 @@ resource "azurerm_role_assignment" "user_roles" {
   principal_id         = var.user_role_assignments[count.index].principal_id
 }
 
+resource "azurerm_role_assignment" "group_roles" {
+  count                = length(var.group_role_assignments)
+  scope                = var.scope
+  role_definition_name = var.group_role_assignments[count.index].role
+  principal_id         = var.group_role_assignments[count.index].principal_id
+}
+
