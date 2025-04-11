@@ -26,6 +26,21 @@ resource "azurerm_resource_group" "terraform_rg" {
   name     = "terraform-rg"
   location = "East US"
 }
+
+resource "azurerm_storage_account" "storage" {
+  name                     = "devtfstateaccount91981" # must be globally unique
+  resource_group_name      = azurerm_resource_group.terraform_rg.name
+  location                 = azurerm_resource_group.terraform_rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "container" {
+  name                  = "tfstate"
+  storage_account_name  = azurerm_storage_account.storage.name
+  container_access_type = "private"
+}
+
 # Create Key Vault
 resource "random_string" "kv_suffix" {
   length  = 6
