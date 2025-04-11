@@ -8,7 +8,10 @@ variable "app_name" {
   type        = string
 }
 
-
+variable "location" {
+  type        = string
+  description = "Azure region where the VNet will be created"
+}
 variable "client_id" {}
 variable "client_secret" {}
 variable "tenant_id" {}
