@@ -54,7 +54,6 @@ stages:
           - checkout: self
 
           - script: |
-              terraform -chdir=$(terraformCodeDir)  init
               terraform -chdir=$(terraformCodeDir)  plan \
                 -var "client_id=$(client_id)" \
                 -var "client_secret=$(client_secret)" \
@@ -100,7 +99,6 @@ stages:
               path: '$(terraformCodeDir)'
 
           - script: |
-              terraform -chdir=$(terraformCodeDir)  init
               terraform -chdir=$(terraformCodeDir)  apply \
                 -var "client_id=$(client_id)" \
                 -var "client_secret=$(client_secret)" \
