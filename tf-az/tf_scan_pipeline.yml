@@ -8,7 +8,8 @@ pool:
 
 variables:
   TF_VAR_location: 'eastus'        # Example of non-secret variable
-  TF_VAR_environment: 'dev'        # Example of non-secret variable
+  TF_VAR_environment: 'dev'   # Example of non-secret variable
+  app_name: 'Tf_SP'
   client_id: $(client_id)
   client_secret: $(client_secret)
   tenant_id: $(tenant_id)
@@ -62,6 +63,7 @@ stages:
                 -var "client_secret=$(client_secret)" \
                 -var "tenant_id=$(tenant_id)" \
                 -var "subscription_id=$(subscription_id)" \
+                - var "app_name"=$(app_name) \
                 -out=tfplan
             displayName: 'Terraform Plan'
 
@@ -106,5 +108,6 @@ stages:
                 -var "client_secret=$(client_secret)" \
                 -var "tenant_id=$(tenant_id)" \
                 -var "subscription_id=$(subscription_id)" \
+                - var "app_name"=$(app_name) \
                 tfplan
             displayName: 'Terraform Apply'
