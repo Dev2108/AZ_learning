@@ -9,7 +9,7 @@ pool:
 variables:
   TF_VAR_location: 'eastus'        # Example of non-secret variable
   TF_VAR_environment: 'dev'   # Example of non-secret variable
-  terraform -chdir=$(terraformCodeDir)CodeDir: 'tf-az'     
+  terraformCodeDir: 'tf-az'     
   app_name: 'Tf_SP'
   client_id: $(client_id)
   client_secret: $(client_secret)
