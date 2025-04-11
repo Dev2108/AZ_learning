@@ -9,6 +9,7 @@ pool:
 variables:
   TF_VAR_location: 'eastus'        # Example of non-secret variable
   TF_VAR_environment: 'dev'   # Example of non-secret variable
+  terraform -chdir=$(terraformCodeDir)CodeDir: 'tf-az'     
   app_name: 'Tf_SP'
   client_id: $(client_id)
   client_secret: $(client_secret)
@@ -17,10 +18,10 @@ variables:
 
 stages:
   - stage: Validate_And_Scan
-    displayName: "Validate & Scan Terraform Code"
+    displayName: "Validate & Scan terraform  Code"
     jobs:
       - job: validate_and_scan
-        displayName: "Run Terraform Validation & Scanning"
+        displayName: "Run terraform  Validation & Scanning"
         steps:
           - checkout: self
 
@@ -33,10 +34,10 @@ stages:
           #   displayName: 'Install tfsec, checkov, tflint'
 
           - script: |
-              terraform init
-              terraform  validate
-              # terraform fmt -check -diff
-            displayName: 'Terraform Init, Validate' # & Fmt Check
+              terraform -chdir=$(terraformCodeDir) init
+              terraform -chdir=$(terraformCodeDir)  validate
+              # terraform -chdir=$(terraformCodeDir) fmt -check -diff
+            displayName: 'terraform  Init, Validate' # & Fmt Check
 
           # - script: tfsec $(terraformCodeDir)
           #   displayName: 'Run tfsec'
@@ -48,30 +49,30 @@ stages:
           #   displayName: 'Run tflint'
 
   - stage: Plan
-    displayName: "Terraform Plan"
+    displayName: "terraform  Plan"
     dependsOn: Validate_And_Scan
     jobs:
       - job: terraform_plan
-        displayName: "Terraform Plan"
+        displayName: "terraform Plan"
         steps:
           - checkout: self
 
           - script: |
-              terraform  init
-              terraform  plan \
+              terraform -chdir=$(terraformCodeDir)  init
+              terraform -chdir=$(terraformCodeDir)  plan \
                 -var "client_id=$(client_id)" \
                 -var "client_secret=$(client_secret)" \
                 -var "tenant_id=$(tenant_id)" \
                 -var "subscription_id=$(subscription_id)" \
                 -var "app_name=$(app_name)" \
                 -out=tfplan
-            displayName: 'Terraform Plan'
+            displayName: 'terraform Plan'
 
           - task: PublishPipelineArtifact@1
             inputs:
-              targetPath: '.'
+              targetPath: '$(terraformCodeDir)'
               artifactName: 'tfplan'
-            displayName: 'Publish Terraform Plan'
+            displayName: 'Publish terraform  Plan'
 
   - stage: WaitForApproval
     displayName: "Wait for Manual Approval"
@@ -83,31 +84,31 @@ stages:
         steps:
           - task: ManualValidation@0
             inputs:
-              instructions: 'Please approve to proceed with Terraform apply'
+              instructions: 'Please approve to proceed with terraform apply'
               onTimeout: 'reject'
               timeout: '1d'
 
   - stage: Apply
-    displayName: "Terraform Apply"
+    displayName: "terraform  Apply"
     dependsOn: WaitForApproval
     jobs:
       - job: terraform_apply
-        displayName: "Terraform Apply"
+        displayName: "terraform  Apply"
         steps:
           - checkout: self
 
           - task: DownloadPipelineArtifact@2
             inputs:
               artifact: 'tfplan'
-              path: '.'
+              path: '$(terraformCodeDir)'
 
           - script: |
-              terraform  init
-              terraform  apply \
+              terraform -chdir=$(terraformCodeDir)  init
+              terraform -chdir=$(terraformCodeDir)  apply \
                 -var "client_id=$(client_id)" \
                 -var "client_secret=$(client_secret)" \
                 -var "tenant_id=$(tenant_id)" \
                 -var "subscription_id=$(subscription_id)" \
                 -var "app_name=$(app_name)" \
                 tfplan
-            displayName: 'Terraform Apply'
+            displayName: 'terraform -chdir=$(terraformCodeDir) Apply'
