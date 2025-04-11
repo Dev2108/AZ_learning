@@ -101,12 +101,5 @@ stages:
 
           - script: |
               terraform -chdir=$(terraformCodeDir)  init
-              terraform -chdir=$(terraformCodeDir)  apply \
-                -var "client_id=$(client_id)" \
-                -var "client_secret=$(client_secret)" \
-                -var "tenant_id=$(tenant_id)" \
-                -var "subscription_id=$(subscription_id)" \
-                -var "app_name=$(app_name)" \
-                -var "location=$(TF_VAR_location)" \
-                tfplan
+              terraform -chdir=$(terraformCodeDir)  apply tfplan
             displayName: 'terraform -chdir=$(terraformCodeDir) Apply'
