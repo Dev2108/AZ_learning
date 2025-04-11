@@ -8,10 +8,10 @@ pool:
 
 variables:
   TF_VAR_location: 'eastus'        # Example of non-secret variable
-  TF_VAR_environment: 'dev'   # Example of non-secret variable
+  TF_VAR_environment: 'dev'        # Example of non-secret variable
   terraformCodeDir: 'tf-az'
   app_name: 'Tf_SP'
-  
+
 stages:
   - stage: Validate_And_Scan
     displayName: "Validate & Scan terraform  Code"
@@ -21,31 +21,19 @@ stages:
         steps:
           - checkout: self
 
-          # - script: |
-          #     sudo apt-get update
-          #     sudo apt-get install unzip -y
-          #     curl -s https://raw.githubusercontent.com/aquasecurity/tfsec/master/scripts/install_linux.sh | bash
-          #     pip install checkov
-          #     curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
-          #   displayName: 'Install tfsec, checkov, tflint'
-
           - script: |
               terraform -chdir=$(terraformCodeDir) init
-              terraform -chdir=$(terraformCodeDir)  validate
+              terraform -chdir=$(terraformCodeDir) validate
               # terraform -chdir=$(terraformCodeDir) fmt -check -diff
-            displayName: 'terraform  Init, Validate' # & Fmt Check
-
-          # - script: tfsec $(terraformCodeDir)
-          #   displayName: 'Run tfsec'
-
-          # - script: checkov -d $(terraformCodeDir)
-          #   displayName: 'Run checkov'
-
-          # - script: tflint -
-          #   displayName: 'Run tflint'
+            displayName: 'terraform Init, Validate'
+            env:
+              ARM_CLIENT_ID: $(client_id)
+              ARM_CLIENT_SECRET: $(client_secret)
+              ARM_SUBSCRIPTION_ID: $(subscription_id)
+              ARM_TENANT_ID: $(tenant_id)
 
   - stage: Plan
-    displayName: "terraform  Plan"
+    displayName: "terraform Plan"
     dependsOn: Validate_And_Scan
     jobs:
       - job: terraform_plan
@@ -54,8 +42,8 @@ stages:
           - checkout: self
 
           - script: |
-              terraform -chdir=$(terraformCodeDir)  init
-              terraform -chdir=$(terraformCodeDir)  plan \
+              terraform -chdir=$(terraformCodeDir) init
+              terraform -chdir=$(terraformCodeDir) plan \
                 -var "client_id=$(client_id)" \
                 -var "client_secret=$(client_secret)" \
                 -var "tenant_id=$(tenant_id)" \
@@ -64,12 +52,17 @@ stages:
                 -var "location=$(TF_VAR_location)" \
                 -out=tfplan
             displayName: 'terraform Plan'
+            env:
+              ARM_CLIENT_ID: $(client_id)
+              ARM_CLIENT_SECRET: $(client_secret)
+              ARM_SUBSCRIPTION_ID: $(subscription_id)
+              ARM_TENANT_ID: $(tenant_id)
 
           - task: PublishPipelineArtifact@1
             inputs:
               targetPath: '$(terraformCodeDir)'
               artifactName: 'tfplan'
-            displayName: 'Publish terraform  Plan'
+            displayName: 'Publish terraform Plan'
 
   - stage: WaitForApproval
     displayName: "Wait for Manual Approval"
@@ -86,11 +79,11 @@ stages:
               timeout: '1d'
 
   - stage: Apply
-    displayName: "terraform  Apply"
+    displayName: "terraform Apply"
     dependsOn: WaitForApproval
     jobs:
       - job: terraform_apply
-        displayName: "terraform  Apply"
+        displayName: "terraform Apply"
         steps:
           - checkout: self
 
@@ -100,6 +93,11 @@ stages:
               path: '$(terraformCodeDir)'
 
           - script: |
-              terraform -chdir=$(terraformCodeDir)  init
-              terraform -chdir=$(terraformCodeDir)  apply tfplan
-            displayName: 'terraform -chdir=$(terraformCodeDir) Apply'
+              terraform -chdir=$(terraformCodeDir) init
+              terraform -chdir=$(terraformCodeDir) apply tfplan
+            displayName: 'terraform Apply'
+            env:
+              ARM_CLIENT_ID: $(client_id)
+              ARM_CLIENT_SECRET: $(client_secret)
+              ARM_SUBSCRIPTION_ID: $(subscription_id)
+              ARM_TENANT_ID: $(tenant_id)
