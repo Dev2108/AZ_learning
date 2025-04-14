@@ -18,4 +18,6 @@ output "all_user_credentials" {
   value     = module.aad_users.user_credentials
   sensitive = true
 }
-
+output "public_ip_address" {
+  value = azurerm_public_ip.public_ip.ip_address
+}

@@ -126,6 +126,14 @@ module "webapp" {
   python_version      = "3.10"
 }
 
+resource "azurerm_public_ip" "public_ip" {
+  name                = "public-ip"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.terraform_rg.name
+  allocation_method   = "Static"
+  sku                 = "Basic"
+}
+
 module "network" {
   source              = "./modules/network"
   vnet_name           = "my-vnet"
@@ -137,5 +145,28 @@ module "network" {
     "subnet-qa"  = "10.0.2.0/24"
     "subnet-db"  = "10.0.3.0/24"
   }
+  public_ip_address = azurerm_public_ip.public_ip.ip_address
 }
 
+
+module "private_vm" {
+  source              = "./modules/vm"
+  name                = "private-vm"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.terraform_rg.name
+  subnet_id           = module.network.subnet_ids["subnet-db"]
+  public_ip           = false
+  username            = "azureuser"
+  password            = "Password@1234"
+}
+module "public_vm" {
+  source              = "./modules/vm"
+  name                = "public-vm"
+  location            = var.location
+  resource_group_name = azurerm_resource_group.terraform_rg.name
+  subnet_id           = module.network.subnet_ids["subnet-dev"]
+  public_ip           = true
+  public_ip_id        = azurerm_public_ip.public_ip.id
+  username            = "azureuser"
+  password            = "Password@1234"
+}

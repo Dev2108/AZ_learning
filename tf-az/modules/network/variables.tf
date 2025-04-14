@@ -23,3 +23,8 @@ variable "subnets" {
   description = "Subnets map with subnet name as key and address prefix as value"
 }
 
+variable "public_ip_address" {
+  description = "The public IP address to allow SSH from"
+  type        = string
+}
+
