@@ -4,28 +4,27 @@ trigger:
       - main
 
 pool:
-  name: Default  # This targets your self-hosted agent inside the 'Default' pool
+  name: Default
 
 variables:
-  TF_VAR_location: 'eastus'        # Example of non-secret variable
-  TF_VAR_environment: 'dev'        # Example of non-secret variable
+  TF_VAR_location: 'eastus'
+  TF_VAR_environment: 'dev'
   terraformCodeDir: 'tf-az'
   app_name: 'Tf_SP'
 
 stages:
   - stage: Validate_And_Scan
-    displayName: "Validate & Scan terraform  Code"
+    displayName: "Validate & Scan Terraform Code"
     jobs:
       - job: validate_and_scan
-        displayName: "Run terraform  Validation & Scanning"
+        displayName: "Run Terraform Validation & Scanning"
         steps:
           - checkout: self
 
           - script: |
               terraform -chdir=$(terraformCodeDir) init
               terraform -chdir=$(terraformCodeDir) validate
-              # terraform -chdir=$(terraformCodeDir) fmt -check -diff
-            displayName: 'terraform Init, Validate'
+            displayName: 'Terraform Init, Validate'
             env:
               ARM_CLIENT_ID: $(client_id)
               ARM_CLIENT_SECRET: $(client_secret)
@@ -33,11 +32,11 @@ stages:
               ARM_TENANT_ID: $(tenant_id)
 
   - stage: Plan
-    displayName: "terraform Plan"
+    displayName: "Terraform Plan"
     dependsOn: Validate_And_Scan
     jobs:
       - job: terraform_plan
-        displayName: "terraform Plan"
+        displayName: "Terraform Plan"
         steps:
           - checkout: self
 
@@ -50,8 +49,15 @@ stages:
                 -var "subscription_id=$(subscription_id)" \
                 -var "app_name=$(app_name)" \
                 -var "location=$(TF_VAR_location)" \
-                -out=tfplan
-            displayName: 'terraform Plan'
+                -out=tfplan > tfplan_output.txt
+              
+              # Extract summary to variable
+              if grep -q "No changes." tfplan_output.txt; then
+                echo "##vso[task.setvariable variable=applyRequired]false"
+              else
+                echo "##vso[task.setvariable variable=applyRequired]true"
+              fi
+            displayName: 'Terraform Plan and Determine if Apply Required'
             env:
               ARM_CLIENT_ID: $(client_id)
               ARM_CLIENT_SECRET: $(client_secret)
@@ -62,28 +68,30 @@ stages:
             inputs:
               targetPath: '$(terraformCodeDir)'
               artifactName: 'tfplan'
-            displayName: 'Publish terraform Plan'
+            displayName: 'Publish Terraform Plan Output'
 
   - stage: WaitForApproval
     displayName: "Wait for Manual Approval"
     dependsOn: Plan
+    condition: and(succeeded(), eq(variables['applyRequired'], 'true'))  # only run if applyRequired is true
     jobs:
       - job: approval
         displayName: "Manual Approval"
-        pool: server  # Required for ManualValidation@0
+        pool: server
         steps:
           - task: ManualValidation@0
             inputs:
-              instructions: 'Please approve to proceed with terraform apply'
+              instructions: 'Please approve to proceed with Terraform apply'
               onTimeout: 'reject'
               timeout: '1d'
 
   - stage: Apply
-    displayName: "terraform Apply"
+    displayName: "Terraform Apply"
     dependsOn: WaitForApproval
+    condition: and(succeeded(), eq(variables['applyRequired'], 'true'))
     jobs:
       - job: terraform_apply
-        displayName: "terraform Apply"
+        displayName: "Terraform Apply"
         steps:
           - checkout: self
 
@@ -95,7 +103,7 @@ stages:
           - script: |
               terraform -chdir=$(terraformCodeDir) init
               terraform -chdir=$(terraformCodeDir) apply tfplan
-            displayName: 'terraform Apply'
+            displayName: 'Terraform Apply'
             env:
               ARM_CLIENT_ID: $(client_id)
               ARM_CLIENT_SECRET: $(client_secret)
