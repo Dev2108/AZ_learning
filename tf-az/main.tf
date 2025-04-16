@@ -69,7 +69,7 @@ module "app_registration" {
 
 module "aad_users" {
   source           = "./modules/aad_user"
-  users_by_group   = var.users_by_group
+  users_by_group   = local.users_by_group
 }
 
 module "rbac" {
